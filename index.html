@@ -1,6 +1,29 @@
 
 <!DOCTYPE html>
 <html lang="en">
+  <style>
+.auth-box {
+  max-width: 420px;
+  margin: 25px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  display: block;
+}
+.auth-box input {
+ didisplay block;
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  box-sizing: border-box;
+}
+.auth-box button {
+  padding: 12px;
+  width: 100%;
+  margin-top: 8px;
+  cursor: pointer;
+}
+  </style>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -96,7 +119,26 @@ footer{background:#101b35;color:white;text-align:center;padding:25px}
 
 <button class="checkout" onclick="placeOrder()">Place Order via WhatsApp</button>
 </section>
+<section class="auth-box" id="authBox">
+  <h2>FlexStore NG Account</h2>
 
+  <h3>Create Account</h3>
+  <input type="text" id="regName" placeholder="Full name">
+  <input type="tel" id="regPhone" placeholder="Phone number">
+  <input type="email" id="regEmail" placeholder="Email address">
+  <input type="password" id="regPassword" placeholder="Password">
+  <button onclick="registerCustomer()">Create Account</button>
+
+  <hr>
+
+  <h3>Login</h3>
+  <input type="email" id="loginEmail" placeholder="Email address">
+  <input type="password" id="loginPassword" placeholder="Password">
+  <button onclick="loginCustomer()">Login</button>
+
+  <p id="authMessage"></p>
+  <button onclick="logoutCustomer()">Logout</button>
+</section>
 <footer>
 <h3>FlexStore NG</h3>
 <p>Your trusted destination for phones and gadgets.</p>
@@ -243,7 +285,65 @@ const SUPABASE_KEY = "sb_publishable_KUWUpe5b8FNxXgMhn67pNw_hBqzrCVY";
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
-);
+);// CUSTOMER REGISTRATION
+async function registerCustomer() {
+  const name = document.getElementById("regName").value.trim();
+  const phone = document.getElementById("regPhone").value.trim();
+  const email = document.getElementById("regEmail").value.trim();
+  const password = document.getElementById("regPassword").value;
+
+  const message = document.getElementById("authMessage");
+
+  if (!name || !phone || !email || !password) {
+    message.textContent = "Please fill in all fields.";
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: {
+        full_name: name,
+        phone: phone
+      }
+    }
+  });
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  message.textContent = data.session
+    ? "Account created successfully!"
+    : "Account created! Check your email to confirm it.";
+}
+
+// CUSTOMER LOGIN
+async function loginCustomer() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  const message = document.getElementById("authMessage");
+
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  message.textContent = error
+    ? error.message
+    : "Login successful! Welcome to FlexStore NG.";
+}
+
+// CUSTOMER LOGOUT
+async function logoutCustomer() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  document.getElementById("authMessage").textContent =
+    error ? error.message : "You have logged out.";
+}
 </script>
 
 </body>
