@@ -117,10 +117,21 @@ document.getElementById('productList').innerHTML=filtered.map((p,i)=>`
 <img src="${p.image}" alt="${p.name}">
 <h3>${p.name}</h3>
 <div class="price">₦${p.price.toLocaleString('en-NG')}</div>
+<button onclick="showDetails(${products.indexOf(p)})">View Details</button>
+<br><br>
 <button onclick="addToCart(${products.indexOf(p)})">Add to Cart</button>
 </div>`).join('')||'<p>No products found.</p>';
 }
+function showDetails(index){
+const p=products[index];
 
+alert(
+"PRODUCT: "+p.name+
+"\nCATEGORY: "+p.category+
+"\nPRICE: ₦"+p.price.toLocaleString('en-NG')+
+"\n\nContact us on WhatsApp for specifications, storage and availability."
+);
+  }
 function addToCart(index){
 cart.push(products[index]);
 updateCart();
