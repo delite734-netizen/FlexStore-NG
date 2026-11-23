@@ -88,7 +88,7 @@ footer{background:#101b35;color:white;text-align:center;padding:25px}
 <h2>🛒 Your Shopping Cart</h2>
 <div id="cartItems">Your cart is empty.</div>
 <p><strong>Total: ₦<span id="total">0</span></strong></p>
-<button class="checkout" onclick="checkout()">Order via WhatsApp</button>
+<button class="checkout" onclick="placeorder()">Order via WhatsApp</button>
 </section>
 
 <section class="cart-area" id="checkout">
@@ -222,42 +222,74 @@ cart.splice(index,1);
 updateCart();
 }
 
-function placeOrder(){
-const name=document.getElementById("customerName").value.trim();
-const customerPhone=document.getElementById("customerPhone").value.trim();
-const address=document.getElementById("customerAddress").value.trim();
-const payment=document.getElementById("paymentMethod").value;
+async function placeOrder(){
 
-if(!name||!customerPhone||!address){
-alert("Please complete all checkout details.");
-return;
-}
+  const name = document.getElementById("customerName").value.trim();
+  const customerPhone = document.getElementById("customerPhone").value.trim();
+  const address = document.getElementById("customerAddress").value.trim();
+  const payment = document.getElementById("paymentMethod").value;
 
-if(cart.length===0){
-alert("Your shopping cart is empty!");
-return;
-}
+  if(!name || !customerPhone || !address){
+    alert("Please complete all checkout details.");
+    return;
+  }
 
-const items=cart.map(p=>
-p.name+" - ₦"+p.price.toLocaleString("en-NG")
-).join("\n");
+  if(cart.length === 0){
+    alert("Your shopping cart is empty!");
+    return;
+  }
 
-const total=cart.reduce((sum,p)=>sum+p.price,0);
+  const total = cart.reduce((sum,p) => sum + p.price, 0);
 
-const message=
-"NEW FLEXSTORE NG ORDER\n\n"+
-"Customer: "+name+"\n"+
-"Phone: "+customerPhone+"\n"+
-"Address: "+address+"\n"+
-"Payment: "+payment+"\n\n"+
-"ORDER DETAILS:\n"+items+
-"\n\nTOTAL: ₦"+total.toLocaleString("en-NG")+
-"\n\nPlease confirm my order.";
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
 
-const url="https://wa.me/2348144488418?text="+encodeURIComponent(message);
+  if(userError){
+    alert("Could not check customer account. Please try again.");
+    return;
+  }
 
-window.open(url,"_blank");
-}
+  const user = userData.user;
+
+  const { error: orderError } = await supabaseClient
+    .from("orders")
+    .insert({
+      customer_id: user ? user.id : null,
+      customer_name: name,
+      customer_phone: customerPhone,
+      delivery_address: address,
+      payment_method: payment,
+      items: cart,
+      total_amount: total,
+      status: "pending"
+    });
+
+  if(orderError){
+    alert("Order could not be saved: " + orderError.message);
+    return;
+  }
+
+  const items = cart.map(p =>
+    p.name + " - ₦" + p.price.toLocaleString("en-NG")
+  ).join("\n");
+
+  const message =
+    "NEW FLEXSTORE NG ORDER\n\n" +
+    "Customer: " + name + "\n" +
+    "Phone: " + customerPhone + "\n" +
+    "Address: " + address + "\n" +
+    "Payment: " + payment + "\n\n" +
+    "ORDER DETAILS:\n" + items +
+    "\n\nTOTAL: ₦" + total.toLocaleString("en-NG") +
+    "\n\nPlease confirm my order.";
+
+  const url = "https://wa.me/2348144488418?text=" +
+    encodeURIComponent(message);
+
+  window.open(url, "_blank");
+
+  alert("Your order has been saved successfully!");
+                                          }
 
 function checkout(){
 if(!cart.length){
