@@ -321,7 +321,42 @@ async function registerCustomer() {
 }
 
 // CUSTOMER LOGIN
-async function loginCustomer() {
+  async function loginCustomer() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const message = document.getElementById("authMessage");
+
+  message.textContent = "Logging in...";
+
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  const { data: { user } } =
+    await supabaseClient.auth.getUser();
+
+  const { data: profile, error: profileError } =
+    await supabaseClient
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .maybeSingle();
+
+  if (profileError) {
+    message.textContent = "Login successful, but profile could not load.";
+    return;
+  }
+
+  message.textContent = profile
+    ? "Welcome back, " + profile.full_name + "! 🎉"
+    : "Login successful! Welcome to FlexStore NG.";
+    }
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
 
