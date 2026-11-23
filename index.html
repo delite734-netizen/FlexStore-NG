@@ -68,6 +68,35 @@ footer{background:#101b35;color:white;text-align:center;padding:25px}
 <button class="checkout" onclick="checkout()">Order via WhatsApp</button>
 </section>
 
+<section class="cart-area" id="checkout">
+<h2>Customer Checkout</h2>
+
+<label>Full Name</label>
+<input id="customerName" type="text" placeholder="Enter your full name" required>
+
+<br><br>
+
+<label>Phone Number</label>
+<input id="customerPhone" type="tel" placeholder="Enter phone number" required>
+
+<br><br>
+
+<label>Delivery Address</label>
+<textarea id="customerAddress" placeholder="Enter delivery address" required></textarea>
+
+<br><br>
+
+<label>Payment Method</label>
+<select id="paymentMethod">
+<option value="Bank Transfer - OPay">Bank Transfer - OPay</option>
+<option value="Cash on Delivery">Cash on Delivery</option>
+</select>
+
+<br><br>
+
+<button class="checkout" onclick="placeOrder()">Place Order via WhatsApp</button>
+</section>
+
 <footer>
 <h3>FlexStore NG</h3>
 <p>Your trusted destination for phones and gadgets.</p>
@@ -149,6 +178,43 @@ document.getElementById('total').textContent=total.toLocaleString('en-NG');
 function removeItem(index){
 cart.splice(index,1);
 updateCart();
+}
+
+function placeOrder(){
+const name=document.getElementById("customerName").value.trim();
+const customerPhone=document.getElementById("customerPhone").value.trim();
+const address=document.getElementById("customerAddress").value.trim();
+const payment=document.getElementById("paymentMethod").value;
+
+if(!name||!customerPhone||!address){
+alert("Please complete all checkout details.");
+return;
+}
+
+if(cart.length===0){
+alert("Your shopping cart is empty!");
+return;
+}
+
+const items=cart.map(p=>
+p.name+" - ₦"+p.price.toLocaleString("en-NG")
+).join("\n");
+
+const total=cart.reduce((sum,p)=>sum+p.price,0);
+
+const message=
+"NEW FLEXSTORE NG ORDER\n\n"+
+"Customer: "+name+"\n"+
+"Phone: "+customerPhone+"\n"+
+"Address: "+address+"\n"+
+"Payment: "+payment+"\n\n"+
+"ORDER DETAILS:\n"+items+
+"\n\nTOTAL: ₦"+total.toLocaleString("en-NG")+
+"\n\nPlease confirm my order.";
+
+const url="https://wa.me/2348144488418?text="+encodeURIComponent(message);
+
+window.open(url,"_blank");
 }
 
 function checkout(){
